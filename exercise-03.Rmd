@@ -1,0 +1,103 @@
+---
+title: "EDA-challenge"
+author: "Amber"
+date: "2024-02-06"
+output: html_document
+---
+
+## Load in libraries and data
+```
+library (tidyverse)
+library (curl)
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/data-wrangling.csv"
+d <- read_csv(f, col_names = TRUE)
+```
+
+## Creating new variables BSD and Sex_ratio
+
+```
+d$BSD <- (d$Body_mass_male_mean/d$Body_mass_female_mean)
+d$sex_ratio <- (d$AdultFemale/d$AdultMales)
+```
+
+## Creating Defensibility index
+
+First, I create the diameter by finding the radius, radi, and multiplying it by two to find the diameter, dia. Then, I create DI from the day range length/diameter. 
+
+```
+radisq <- (d$HomeRange_km2/ pi)
+radi <- sqrt(radisq)
+d$dia <- (radi*2)
+d$DI <- (d$DayLength_km/d$dia)
+```
+
+## Q4 Plot of the relationship between day range length and time spent moving overall. I used ggplot because I could not get the color change in the next step, by family, to work in base R. 
+
+```
+p <- ggplot(data = d, aes(x = log(DayLength_km), y = log(Move)))
+p <- p + xlab("log(DayLength_km)") + ylab("log(Move)")
+p <- p + geom_point(na.rm = TRUE)
+p <- p + theme(legend.position = "bottom", legend.title = element_blank())
+p
+```
+
+Q4 Plot of the relationship between day range length and time spent moving by family. For this, you just add in a line telling ggplot to color the dots based on family.
+
+```
+p <- ggplot(data = d, aes(x = log(DayLength_km), y = log(Move),
+    color = factor(Family)))  
+p <- p + xlab("log(DayLength_km)") + ylab("log(Move)")
+p <- p + geom_point(na.rm = TRUE)
+p <- p + theme(legend.position = "bottom", legend.title = element_blank())
+p
+```
+
+Q4 I tried changing the factor from Family to Species to see if there was a trend with species, but the number of different species made the graph difficult to read and parse. There is some correlation between time spent moving and the distance moved in the most extreme cases, but overall the relationship between the two variables does not seem strong. Individuals who moved within the median range moved the most amount of time, while those who moved the furtherest were in the second highest quartile of moving time. 
+
+## Q5 Relationship between day range length and group size overall
+
+```
+q <- ggplot(data = d, aes(x = log(DayLength_km), y = log(MeanGroupSize)))
+q <- q + xlab("log(DayLength_km)") + ylab("log(MeanGroupSize)")
+q <- q + geom_point(na.rm = TRUE)
+q <- q + theme(legend.position = "bottom", legend.title = element_blank())
+q
+```
+
+Relationship between day range length and group size by family. 
+
+```
+q <- ggplot(data = d, aes(x = log(DayLength_km), y = log(MeanGroupSize), color = factor(Family)))
+q <- q + xlab("log(DayLength_km)") + ylab("log(MeanGroupSize)")
+q <- q + geom_point(na.rm = TRUE)
+q <- q + theme(legend.position = "bottom", legend.title = element_blank())
+q
+```
+
+There appears to be a positive relationship between group size and movement with larger groups moving further per day overall. Certain families seem to prefer both smaller mean group sizes and less movement per day. I do not think either variable needs transforming. 
+
+## Q6 Body size dimorphism and canine size
+
+Overall
+```
+s <- ggplot(data = d, aes(x = log(BSD), y = log(Canine_Dimorphism)))
+s <- s + xlab("log(BSD)") + ylab("log(Canine_Dimorphism)")
+s <- s + geom_point(na.rm = TRUE)
+s <- s + theme(legend.position = "bottom", legend.title = element_blank())
+s
+```
+
+By Family
+```
+s <- ggplot(data = d, aes(x = log(BSD), y = log(Canine_Dimorphism), color= factor(Family)))
+s <- s + xlab("log(BSD)") + ylab("log(Canine_Dimorphism)")
+s <- s + geom_point(na.rm = TRUE)
+s <- s + theme(legend.position = "bottom", legend.title = element_blank())
+s
+```
+
+There seems to be a clear correlation between size dimorphism and canine dimorphism, unsurprisingly. Families with greater dimorphism of one show greater dimorphism of the other as well. 
+
+## Q7 Diet_Strategy
+
+First, I created the variable diet_strategy, which used the amount of fruit/foliage used to determine the diet strategy of a group. I did struggle a bit initially with this, but the code in the hint helped!
