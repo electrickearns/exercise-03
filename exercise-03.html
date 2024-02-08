@@ -445,8 +445,53 @@ one show greater dimorphism of the other as well.</p>
 <div id="q7-diet_strategy" class="section level2">
 <h2>Q7 Diet_Strategy</h2>
 <p>First, I created the variable diet_strategy, which used the amount of
-fruit/foliage used to determine the diet strategy of a group. I did
-struggle a bit initially with this, but the code in the hint helped!</p>
+fruit/foliage used to determine the diet strategy of a group. I
+struggled a lot with this section, but class helped! I initially
+overcomplicated it, making the argument (Fruit/Leaves) &gt;= 1 ~
+“frugivore”, but when that did not work, I tried to simplify, and it
+worked!</p>
+<pre><code>d &lt;- d |&gt;
+  mutate(diet_strategy = case_when (
+  Fruit &gt; Leaves ~ &quot;frugivore&quot;,
+  Leaves &gt; Fruit ~ &quot;folivore&quot;,
+  TRUE ~ &quot;omnivore&quot;))</code></pre>
+<p>Now, I need to generate boxplots for group size of species with
+different dietary strategies. I used base R for this one instead of
+ggplot, simply because I used gg plot on the others. Additionally, I
+added the stripchart function to show the individual datapoints, but if
+one did not want to use it, they need only run the first line alone.</p>
+<pre><code>boxplot (log(d$MeanGroupSize) ~ d$diet_strategy)
+stripchart(log(d$MeanGroupSize) ~ d$diet_strategy,
+          method=&quot;jitter&quot;,
+          col= &quot;purple&quot;,
+          vertical= TRUE,
+          add= TRUE)</code></pre>
+<p>The mean group size of folivores is higher than that of frugivores,
+but the largest group sizes belong to omnivores, then frugivores.</p>
+</div>
+<div id="q8" class="section level2">
+<h2>Q8</h2>
+<p>I created a new dataset, t, for this problem. At first I used
+c(Genus, Species), but when that didn’t work, I found the paste function
+listed in module 10 and switched to it to create the Binomial
+variable.</p>
+<p>I started by writing each code out separately to be sure I understood
+what I was doing before trying the forward pipe:</p>
+<pre><code>t &lt;- mutate(d, Binomial = paste(Genus, Species, sep = &quot; &quot;))
+t &lt;- select(t, Binomial, Family, Brain_size_species_mean, Body_mass_male_mean)
+byFamily &lt;- group_by(d, Family)
+t &lt;- summarize(t, Family = n(), avgBS =     mean(Brain_size_species_nean), na.rm = TRUE),
+    avgBM = mean(Body_mass_male_mean, na.rm = TRUE))
+t &lt;- arrange(t, Brain_size_species_mean)</code></pre>
+<p>And now I tentatively change it to being piped. There ended up being
+some issues with the code (Brain_Size_Species_Mean has all caps, I had
+one typo, etc), so I fixed those in this version:</p>
+<pre><code>t &lt;- mutate(d, Binomial = paste(Genus, Species, sep = &quot; &quot;)) |&gt;
+    select(Binomial, Family, Brain_Size_Species_Mean, Body_mass_male_mean) |&gt;
+    group_by(Family) |&gt;
+  summarize(avgBS = mean(Brain_Size_Species_Mean, na.rm = TRUE),
+    avgBM = mean(Body_mass_male_mean, na.rm = TRUE)) |&gt;
+    arrange(avgBS)</code></pre>
 </div>
 
 

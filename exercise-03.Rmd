@@ -2,7 +2,9 @@
 title: "EDA-challenge"
 author: "Amber"
 date: "2024-02-06"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ## Load in libraries and data
@@ -100,4 +102,51 @@ There seems to be a clear correlation between size dimorphism and canine dimorph
 
 ## Q7 Diet_Strategy
 
-First, I created the variable diet_strategy, which used the amount of fruit/foliage used to determine the diet strategy of a group. I did struggle a bit initially with this, but the code in the hint helped!
+First, I created the variable diet_strategy, which used the amount of fruit/foliage used to determine the diet strategy of a group. I struggled a lot with this section, but class helped! I initially overcomplicated it, making the argument (Fruit/Leaves) >= 1 ~ "frugivore", but when that did not work, I tried to simplify, and it worked!
+
+```
+d <- d |>
+  mutate(diet_strategy = case_when (
+  Fruit > Leaves ~ "frugivore",
+  Leaves > Fruit ~ "folivore",
+  TRUE ~ "omnivore"))
+```
+
+Now, I need to generate boxplots for group size of species with different dietary strategies. I used base R for this one instead of ggplot, simply because I used gg plot on the others. Additionally, I added the stripchart function to show the individual datapoints, but if one did not want to use it, they need only run the first line alone. 
+
+```
+boxplot (log(d$MeanGroupSize) ~ d$diet_strategy)
+stripchart(log(d$MeanGroupSize) ~ d$diet_strategy,
+          method="jitter",
+          col= "purple",
+          vertical= TRUE,
+          add= TRUE)
+```
+
+The mean group size of folivores is higher than that of frugivores, but the largest group sizes belong to omnivores, then frugivores. 
+
+## Q8
+
+I created a new dataset, t, for this problem. At first I used c(Genus, Species), but when that didn't work, I found the paste function listed in module 10 and switched to it to create the Binomial variable. 
+
+I started by writing each code out separately to be sure I understood what I was doing before trying the forward pipe:
+
+```
+t <- mutate(d, Binomial = paste(Genus, Species, sep = " "))
+t <- select(t, Binomial, Family, Brain_size_species_mean, Body_mass_male_mean)
+byFamily <- group_by(d, Family)
+t <- summarize(t, Family = n(), avgBS =     mean(Brain_size_species_nean), na.rm = TRUE),
+    avgBM = mean(Body_mass_male_mean, na.rm = TRUE))
+t <- arrange(t, Brain_size_species_mean)
+```
+
+And now I tentatively change it to being piped. There ended up being some issues with the code (Brain_Size_Species_Mean has all caps, I had one typo, etc), so I fixed those in this version:
+
+```
+t <- mutate(d, Binomial = paste(Genus, Species, sep = " ")) |>
+    select(Binomial, Family, Brain_Size_Species_Mean, Body_mass_male_mean) |>
+    group_by(Family) |>
+  summarize(avgBS = mean(Brain_Size_Species_Mean, na.rm = TRUE),
+    avgBM = mean(Body_mass_male_mean, na.rm = TRUE)) |>
+    arrange(avgBS)
+```
